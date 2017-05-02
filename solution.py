@@ -8,6 +8,12 @@ def cross(a, b):
     return [s+t for s in a for t in b]
 
 def alternate(a,b):
+    """
+    Alternates characters from a with b e.g.: a=abc. b=123 => a1b2c3
+    :param a: string
+    :param b: string
+    :return: [string]
+    """
     return [a[i]+b[i] for i in range(len(a))]
 
 boxes = cross(rows, cols)
@@ -44,7 +50,6 @@ def naked_twins(values):
     """
     # Find all instances of naked twins
     n_t = [sorted([t_k, k]) for k in values if len(values[k]) == 2 for t_k in peers[k] if len(values[t_k]) == 2 and values[t_k] == values[k]]
-
     for twin_pair in n_t:
         index = twin_pair[0]
         twin_values = values[index]
@@ -92,6 +97,11 @@ def display(values):
     return
 
 def eliminate(values):
+    """
+    Eliminates duplicated values from box's peers
+    :param values: dict
+    :return: dict
+    """
     for key in values.keys():
         if len(values[key]) == 1:
             eliminate = values[key]
@@ -100,6 +110,11 @@ def eliminate(values):
     return values
 
 def only_choice(values):
+    """
+    If there is only one box in a unit which would allow a certain digit, then that box must be assigned that digit.
+    :param values: dict
+    :return: dict
+    """
     for unit in unitlist:
         singles = [values[n] for n in unit if len(values[n]) == 1]
         multiples = ''.join([values[n] for n in unit if len(values[n]) > 1])
@@ -113,11 +128,16 @@ def only_choice(values):
     return values
 
 def reduce_puzzle(values):
+    """
+    Applies only choice, elminate and naked_twins until sudoku is can no longer be reduced.
+    :param values: dict 
+    :return: dict
+    """
     stalled = False
     while not stalled:
         # Check how many boxes have a determined value
         solved_values_before = len([box for box in values.keys() if len(values[box]) == 1])
-        values = naked_twins(eliminate(only_choice(values)))
+        values = only_choice(naked_twins(eliminate(values)))
         # Check how many boxes have a determined value, to compare
         solved_values_after = len([box for box in values.keys() if len(values[box]) == 1])
         # If no new values were added, stop the loop.
@@ -128,6 +148,11 @@ def reduce_puzzle(values):
     return values
 
 def search(values):
+    """
+    Uses depth first search to solve sudoku
+    :param values: dict
+    :return: dict
+    """
     values = reduce_puzzle(values)
 
     if not values:
@@ -167,8 +192,11 @@ def solve(grid):
     Returns:
         The dictionary representation of the final sudoku grid. False if no solution exists.
     """
+    # create values dict
     values = grid_values(grid)
+    # reduce values dict as much as possible unsing constraint propagation
     values = reduce_puzzle(values)
+    # if all else fails use dept first approach
     values = search(values)
     return values
 
