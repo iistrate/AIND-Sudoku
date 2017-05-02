@@ -8,7 +8,6 @@ def cross(a, b):
     return [s+t for s in a for t in b]
 
 boxes = cross(rows, cols)
-
 row_units = [cross(r, cols) for r in rows]
 column_units = [cross(rows, c) for c in cols]
 square_units = [cross(rs, cs) for rs in ('ABC', 'DEF', 'GHI') for cs in ('123', '456', '789')]
@@ -39,10 +38,20 @@ def naked_twins(values):
     Returns:
         the values dictionary with the naked twins eliminated from peers.
     """
-
     # Find all instances of naked twins
-    print(values)
-    # Eliminate the naked twins as possibilities for their peers
+    n_t = [sorted([t_k, k]) for k in values if len(values[k]) == 2 for t_k in peers[k] if len(values[t_k]) == 2 and values[t_k] == values[k]]
+
+    for twin_pair in n_t:
+        index = twin_pair[0]
+        twin_values = values[index]
+        unit = [unit for unit in units[index] if twin_pair[1] in unit][0]
+        for k in unit:
+            box_values = values[k]
+            if k not in twin_pair and len(box_values) > 2:
+                table = str.maketrans(dict.fromkeys(twin_values))
+                box_values = box_values.translate(table)
+                assign_value(values, k, box_values)
+    return values
 
 def grid_values(grid):
     """
@@ -63,7 +72,6 @@ def grid_values(grid):
             values.append(c)
 
     return {boxes[i]: values[i] for i in range(len(grid))}
-
 
 def display(values):
     """
@@ -105,7 +113,7 @@ def reduce_puzzle(values):
     while not stalled:
         # Check how many boxes have a determined value
         solved_values_before = len([box for box in values.keys() if len(values[box]) == 1])
-        values = eliminate(only_choice(values))
+        values = naked_twins(eliminate(only_choice(values)))
         # Check how many boxes have a determined value, to compare
         solved_values_after = len([box for box in values.keys() if len(values[box]) == 1])
         # If no new values were added, stop the loop.
@@ -156,18 +164,19 @@ def solve(grid):
         The dictionary representation of the final sudoku grid. False if no solution exists.
     """
     values = grid_values(grid)
-    # values = search(values)
+    values = reduce_puzzle(values)
+    values = search(values)
     return values
 
 if __name__ == '__main__':
     diag_sudoku_grid = '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
     display(solve(diag_sudoku_grid))
+    try:
+        from visualize import visualize_assignments
+        visualize_assignments(assignments)
 
-    # try:
-    #     from visualize import visualize_assignments
-    #     visualize_assignments(assignments)
-    #
-    # except SystemExit:
-    #     pass
-    # except:
-    #     print('We could not visualize your board due to a pygame issue. Not a problem! It is not a requirement.')
+    except SystemExit:
+        pass
+    except:
+        print('We could not visualize your board due to a pygame issue. Not a problem! It is not a requirement.')
+
