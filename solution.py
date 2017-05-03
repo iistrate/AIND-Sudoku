@@ -48,12 +48,13 @@ def naked_twins(values):
     Returns:
         the values dictionary with the naked twins eliminated from peers.
     """
-    # Find all instances of naked twins
-    n_t = [sorted([t_k, k]) for k in values if len(values[k]) == 2 for t_k in peers[k] if len(values[t_k]) == 2 and values[t_k] == values[k]]
+    # Find all instances of naked twins, remove duplicates and sort keys
+    n_t = set(tuple(p) for p in [sorted([t_k, k]) for k in values if len(values[k]) == 2 for t_k in peers[k] if len(values[t_k]) == 2 and values[t_k] == values[k]])
     for twin_pair in n_t:
         index = twin_pair[0]
         twin_values = values[index]
-        unit = [unit for unit in units[index] if twin_pair[1] in unit][0]
+        # finds all units that have both twin keys and flattens them into a single list to improve efficiency
+        unit = [u for unit in units[index] for u in unit if twin_pair[1] in unit]
         for k in unit:
             box_values = values[k]
             if k not in twin_pair and len(box_values) > 2:
@@ -196,7 +197,7 @@ def solve(grid):
     values = grid_values(grid)
     # reduce values dict as much as possible unsing constraint propagation
     values = reduce_puzzle(values)
-    # if all else fails use dept first approach
+    # if all else fails use depth first approach
     values = search(values)
     return values
 
