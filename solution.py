@@ -20,6 +20,31 @@ def alternate(a,b):
     """
     return [a[i]+b[i] for i in range(len(a))]
 
+# for use with pygame
+assignments = []
+
+# row elements
+rows = 'ABCDEFGHI'
+# col elements
+cols = '123456789'
+# boxes keys
+boxes = cross(rows, cols)
+# row unit key list
+row_units = [cross(r, cols) for r in rows]
+# column unit key list
+column_units = [cross(rows, c) for c in cols]
+# square unit key list
+square_units = [cross(rs, cs) for rs in ('ABC', 'DEF', 'GHI') for cs in ('123', '456', '789')]
+# diagonal unit key list
+diagonal_units = [alternate(rows, cols)] + [alternate(''.join(sorted(rows, reverse=True)), cols)]
+# all our units as lists of list
+unitlist = row_units + column_units + square_units + diagonal_units
+# all the units for each box as a dict; accessible through box's key
+units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
+# all the peers for each box
+peers = dict((s, set(sum(units[s], [])) - set([s])) for s in boxes)
+
+
 def assign_value(values, box, value):
     """
     Assigns a value to a given box. If it updates the board record it.
@@ -184,7 +209,7 @@ def solve(grid):
     """
     # create values dict
     values = grid_values(grid)
-    # reduce values dict as much as possible unsing constraint propagation
+    # reduce values dict as much as possible using constraint propagation
     values = reduce_puzzle(values)
     # if all else fails use depth first approach
     values = search(values)
@@ -192,32 +217,8 @@ def solve(grid):
 
 if __name__ == '__main__':
 
-    # for use with pygame
-    assignments = []
-
-    # row elements
-    rows = 'ABCDEFGHI'
-    # col elements
-    cols = '123456789'
-    # boxes keys
-    boxes = cross(rows, cols)
-    # row unit key list
-    row_units = [cross(r, cols) for r in rows]
-    # column unit key list
-    column_units = [cross(rows, c) for c in cols]
-    # square unit key list
-    square_units = [cross(rs, cs) for rs in ('ABC', 'DEF', 'GHI') for cs in ('123', '456', '789')]
-    # diagonal unit key list
-    diagonal_units = [alternate(rows, cols)] + [alternate(''.join(sorted(rows, reverse=True)), cols)]
-    # all our units as lists of list
-    unitlist = row_units + column_units + square_units + diagonal_units
-    # all the units for each box as a dict; accessible through box's key
-    units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
-    # all the peers for each box
-    peers = dict((s, set(sum(units[s], [])) - set([s])) for s in boxes)
-
     # unsolved sudoku grid
-    diag_sudoku_grid = '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
+    diag_sudoku_grid = '9.1....8.8.5.7..4.2.4....6...7......5..............83.3..6......9................'
     # prints solved sudoku
     display(solve(diag_sudoku_grid))
 
